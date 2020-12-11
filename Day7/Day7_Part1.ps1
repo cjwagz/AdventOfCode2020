@@ -16,3 +16,29 @@ $rulehash = @{}
     }
     $rulehash.Add("$((Select-String -InputObject $_ -Pattern "^\w+\s\w+").Matches.Value)", $containhash)
 }
+
+$containsgold = [System.Collections.ArrayList]@()
+$rulehash.Keys | ForEach-Object {
+    if ($rulehash.$_.ContainsKey("shiny gold")) {
+        $containsgold.Add($_) | Out-Null
+    }
+}
+
+do {
+    $newlookups = 0
+    $newcontainsgold = [System.Collections.ArrayList]@()
+    $containsgold | ForEach-Object {
+        $goldcontainer = $_
+        $rulehash.Keys | ForEach-Object {
+            if ($rulehash.$_.ContainsKey("$goldcontainer")) {
+                if ($containsgold -notcontains $_) {
+                    $newcontainsgold.Add($_) | Out-Null
+                    $newlookups++
+                }
+            }
+        }
+    }
+    $containsgold.AddRange($newcontainsgold) | Out-Null
+} until ($newlookups -eq 0)
+
+($containsgold | Sort-Object | Get-Unique).Count
